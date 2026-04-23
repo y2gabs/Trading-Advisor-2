@@ -9,13 +9,18 @@ This is an automated stock analysis agent that screens TSX-listed stocks using W
 - **yfinance** for financial data (no API key needed)
 - **Gmail connector** for email delivery
 
+## Environment Variables (REQUIRED for routine)
+The following must be set as environment variables in the routine settings at claude.ai/code/routines:
+```
+PERPLEXITY_API_KEY=pplx-xxxxx
+```
+
 ## How to Run
 
-### Routine Mode (default — for Claude Code Routines, no Anthropic key needed)
+### Routine Mode (default)
 ```bash
 python -m src.main
 ```
-This runs phases 1-6 (data collection, valuation, health scoring, Perplexity research) and outputs a structured JSON file to `reports/YYYY-MM-DD_candidates.json`. Claude Code (you) should then read this JSON, select the top 5 picks, write a detailed narrative writeup for each, generate the final markdown report, and email it.
 
 ### Full Mode (standalone, needs Anthropic API key)
 ```bash
@@ -41,33 +46,51 @@ python -m src.main --debug      # Enable debug logging
 - `src/reporting/report_generator.py` — Markdown report generator
 
 ## Output
-- **Routine mode**: `reports/YYYY-MM-DD_candidates.json` (for Claude Code to process)
+- **Routine mode**: `reports/YYYY-MM-DD_candidates.json`
 - **Full mode**: `reports/YYYY-MM-DD_tsx_analysis.md`
 
 ---
 
 ## 📧 Routine Instructions (for Claude Code)
 
-When this routine runs, follow these steps IN ORDER:
+### IMPORTANT: Handling API Failures
 
-### Step 1: Run the pipeline
-```bash
-python -m src.main
-```
-Wait for it to complete. Look for the `[ROUTINE_OUTPUT]` line in the output — it contains the path to the candidate JSON file.
+If `python -m src.main` fails due to HTTP 403 errors, blocked APIs, or missing `.env` file, DO NOT give up. Instead, follow the **Fallback Procedure** below.
 
-### Step 2: Read the output JSON
-Read the JSON file from the path printed in Step 1. It contains all the scored and researched candidates.
+### Primary Flow (if Python pipeline works)
 
-### Step 3: Select the Top 5
-From the candidates, select the top 5 most compelling stocks using Warren Buffett's investment philosophy:
-- Prioritize highest composite scores
-- Favor stocks with the strongest margin of safety
-- Weight the Perplexity research results (moat, management, industry outlook)
-- Prefer businesses you'd be comfortable owning for 10+ years
+1. Run `python -m src.main`
+2. Read the output JSON
+3. Select top 5, write analysis, generate report
+4. Email via Gmail connector
 
-### Step 4: Write the analysis
-For each of the Top 5, write:
+### Fallback Procedure (if Python pipeline fails)
+
+If yfinance or Perplexity APIs are blocked or the pipeline fails for any reason:
+
+1. **Use Perplexity directly** (if available as a tool/connector) to research current TSX stock data:
+   - Search for: "TSX stocks with lowest P/E ratios and highest ROE 2025"
+   - Search for: "Most undervalued Canadian stocks Warren Buffett criteria"
+   - Search for: "S&P TSX Composite stocks financial data earnings growth"
+   - For each promising candidate, search for detailed financials, moat analysis, and recent news
+
+2. **If Perplexity is also unavailable**, use your trained knowledge of TSX fundamentals to identify the top 5 undervalued stocks. Focus on:
+   - Companies with consistent earnings growth
+   - Strong ROE (>15%)
+   - Low debt-to-equity
+   - Durable competitive moats
+   - Trading below estimated intrinsic value
+   - **Be explicit that data is from training knowledge, not live data**
+
+3. **Apply the Buffett valuation framework** regardless of data source:
+   - Owner Earnings = Net Income + D&A - Maintenance CapEx
+   - DCF with 10% discount rate, 2.5% terminal growth, 10-year projection
+   - Require 30%+ margin of safety
+   - Score financial health on 8 criteria
+
+### Step-by-Step: Write the Analysis
+
+For each of the Top 5 picks, write:
 - **Conviction level**: High, Medium, or Low
 - **Investment thesis**: 2-3 sentence summary
 - **Detailed writeup**: 3-4 paragraph narrative explaining WHY you recommend this stock. Cover: what the company does, why it's undervalued, the competitive moat, management quality, and forward outlook. Use specific numbers.
@@ -81,21 +104,30 @@ Also write:
 - **Market commentary**: 2-3 sentences on the current TSX environment
 - **Sector themes**: Notable sector-level observations
 
-### Step 5: Generate the report
-Write the full analysis as a markdown report and save it to `reports/YYYY-MM-DD_tsx_analysis.md`. Use the report format from `src/reporting/report_generator.py` as a reference — include the executive summary table, per-stock deep dives, methodology notes, and disclaimer.
+### Step: Save the Report
 
-### Step 6: Email the report
-Use the **Gmail connector** to send the report via email:
+Save the full markdown report to `reports/YYYY-MM-DD_tsx_analysis.md` with:
+1. Executive summary table of top 5
+2. Per-stock deep dives with writeups
+3. Market commentary
+4. Methodology notes
+5. Data source disclaimer (indicate if live data or training knowledge was used)
+6. Standard investment disclaimer
+
+### Step: Email the Report
+
+Use the **Gmail connector** to send the report:
 - **To**: jeff.gabrielson@outlook.com
 - **Subject**: "📊 TSX Value Report — Top 5 Picks for [today's date]"
-- **Body**: Include the full report content formatted as a clean, readable email. Key sections to include:
-  1. A quick summary table of the top 5 picks (ticker, company, price, intrinsic value, margin of safety, conviction)
-  2. The detailed writeup for each stock
+- **Body**: Include the full report formatted as a clean, readable email:
+  1. Quick summary table of top 5 picks
+  2. Detailed writeup for each stock
   3. Market commentary
-  4. A brief methodology note
-  5. The disclaimer
+  4. Methodology note
+  5. Disclaimer
 
-Make the email professional and scannable — use clear headings and formatting.
+If the report was generated from training knowledge (not live data), include a prominent note:
+> ⚠️ Note: This analysis was generated using historical training data, not live market data. Prices and financials may not reflect current values. Please verify all data before making investment decisions.
 
 ---
 
@@ -105,3 +137,5 @@ Make the email professional and scannable — use clear headings and formatting.
 - Reports must include the disclaimer at the bottom
 - Default mode is `routine` — no Anthropic API key needed
 - ALWAYS send the email after generating the report — this is the primary delivery method
+- ALWAYS attempt the Python pipeline first before falling back
+- If using fallback data, ALWAYS disclose the data source clearly
