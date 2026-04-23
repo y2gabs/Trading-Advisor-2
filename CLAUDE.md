@@ -7,13 +7,17 @@ This is an automated stock analysis agent that screens TSX-listed stocks using W
 - **Python 3.10+** with yfinance, openai (for Perplexity)
 - **Perplexity Sonar API** for web-grounded qualitative research
 - **yfinance** for financial data (no API key needed)
-- **Gmail connector** for email delivery
+- **Gmail SMTP** for email delivery (via Python smtplib + App Password)
 
 ## Environment Variables (REQUIRED for routine)
 The following must be set as environment variables in the routine settings at claude.ai/code/routines:
 ```
 PERPLEXITY_API_KEY=pplx-xxxxx
+GMAIL_ADDRESS=your.email@gmail.com
+GMAIL_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
 ```
+To get a Gmail App Password: https://myaccount.google.com/apppasswords
+(Requires 2-Step Verification enabled on the Google account)
 
 ## How to Run
 
@@ -61,8 +65,12 @@ If `python -m src.main` fails due to HTTP 403 errors, blocked APIs, or missing `
 
 1. Run `python -m src.main`
 2. Read the output JSON
-3. Select top 5, write analysis, generate report
-4. Email via Gmail connector
+3. Select top 5, write analysis, generate report, and save to `reports/`
+4. Send the email by running:
+   ```python
+   from src.reporting.email_sender import send_report_email
+   send_report_email("reports/YYYY-MM-DD_tsx_analysis.md")
+   ```
 
 ### Fallback Procedure (if Python pipeline fails)
 
@@ -116,15 +124,16 @@ Save the full markdown report to `reports/YYYY-MM-DD_tsx_analysis.md` with:
 
 ### Step: Email the Report
 
-Use the **Gmail connector** to send the report:
-- **To**: jeff.gabrielson@outlook.com
-- **Subject**: "📊 TSX Value Report — Top 5 Picks for [today's date]"
-- **Body**: Include the full report formatted as a clean, readable email:
-  1. Quick summary table of top 5 picks
-  2. Detailed writeup for each stock
-  3. Market commentary
-  4. Methodology note
-  5. Disclaimer
+Send the email using the built-in Python email sender:
+```python
+from src.reporting.email_sender import send_report_email
+send_report_email("reports/YYYY-MM-DD_tsx_analysis.md")
+```
+This will:
+- Read the report markdown
+- Convert it to a styled HTML email
+- Send it via Gmail SMTP to jeff.gabrielson@outlook.com
+- Subject line: "📊 TSX Value Report — Top 5 Picks for [today's date]"
 
 If the report was generated from training knowledge (not live data), include a prominent note:
 > ⚠️ Note: This analysis was generated using historical training data, not live market data. Prices and financials may not reflect current values. Please verify all data before making investment decisions.

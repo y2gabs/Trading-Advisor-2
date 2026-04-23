@@ -63,6 +63,8 @@ PERPLEXITY_RATE_LIMIT_DELAY = 1.0     # Seconds between Perplexity calls
 # ── Email Delivery ──────────────────────────────────────────────────────────
 EMAIL_RECIPIENT = "jeff.gabrielson@outlook.com"
 EMAIL_SUBJECT_TEMPLATE = "📊 TSX Value Report — Top {n} Picks for {date}"
+GMAIL_ADDRESS = os.getenv("GMAIL_ADDRESS", "")
+GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
 
 # ── Logging ─────────────────────────────────────────────────────────────────
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

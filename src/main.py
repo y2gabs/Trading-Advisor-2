@@ -47,6 +47,7 @@ from src.analysis.scoring import (
 )
 from src.research.perplexity_agent import research_stock
 from src.reporting.report_generator import generate_report
+from src.reporting.email_sender import send_report_email
 
 # ── Configure logging ───────────────────────────────────────────────────────
 logging.basicConfig(
@@ -125,6 +126,7 @@ def _serialize_candidate(candidate: ScoredStock) -> Dict:
 def run_analysis(
     force_refresh_universe: bool = False,
     mode: str = "full",
+    send_email: bool = True,
 ):
     """
     Run the complete TSX stock analysis pipeline.
@@ -133,6 +135,7 @@ def run_analysis(
         force_refresh_universe: If True, rebuild the TSX ticker cache.
         mode: "full" (uses Claude API for synthesis) or
               "routine" (outputs JSON for Claude Code Routine to synthesize).
+        send_email: If True, email the report after generation.
     """
     start_time = time.time()
 
@@ -293,6 +296,12 @@ def run_analysis(
             run_duration_seconds=elapsed,
         )
 
+        # ── Phase 9: Email Report ───────────────────────────────────────────
+        if send_email:
+            logger.info("")
+            logger.info("━━━ PHASE 9: Emailing Report ━━━")
+            send_report_email(report_path)
+
         # ── Summary ─────────────────────────────────────────────────────────
         logger.info("")
         logger.info("=" * 70)
@@ -342,9 +351,18 @@ if __name__ == "__main__":
             "(default, no Anthropic key needed)."
         ),
     )
+    parser.add_argument(
+        "--no-email",
+        action="store_true",
+        help="Skip sending the email after report generation",
+    )
     args = parser.parse_args()
 
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    run_analysis(force_refresh_universe=args.refresh, mode=args.mode)
+    run_analysis(
+        force_refresh_universe=args.refresh,
+        mode=args.mode,
+        send_email=not args.no_email,
+    )
