@@ -60,5 +60,9 @@ FINAL_TOP_PICKS = 5                   # Number of final recommendations
 YFINANCE_RATE_LIMIT_DELAY = 0.5       # Seconds between yfinance calls
 PERPLEXITY_RATE_LIMIT_DELAY = 1.0     # Seconds between Perplexity calls
 
+# ── Email Delivery ──────────────────────────────────────────────────────────
+EMAIL_RECIPIENT = "jeff.gabrielson@outlook.com"
+EMAIL_SUBJECT_TEMPLATE = "📊 TSX Value Report — Top {n} Picks for {date}"
+
 # ── Logging ─────────────────────────────────────────────────────────────────
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
