@@ -57,8 +57,9 @@ WEIGHT_QUALITATIVE = 0.30
 # ── Pipeline Configuration ──────────────────────────────────────────────────
 TOP_CANDIDATES_FOR_RESEARCH = 20      # Deep-research top N candidates
 FINAL_TOP_PICKS = 5                   # Number of final recommendations
-YFINANCE_RATE_LIMIT_DELAY = 0.5       # Seconds between yfinance calls
-PERPLEXITY_RATE_LIMIT_DELAY = 1.0     # Seconds between Perplexity calls
+TSX_SCREEN_COUNT = 25                 # Stocks Perplexity screens per run
+PERPLEXITY_RATE_LIMIT_DELAY = 1.5     # Seconds between Perplexity calls
+YFINANCE_RATE_LIMIT_DELAY = 0.5       # Kept for reference; yfinance no longer used
 
 # ── Email Delivery ──────────────────────────────────────────────────────────
 EMAIL_RECIPIENT = "jeff.gabrielson@outlook.com"
