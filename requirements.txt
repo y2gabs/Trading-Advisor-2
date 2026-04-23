@@ -1,0 +1,11 @@
+# Core dependencies
+yfinance>=0.2.40
+anthropic>=0.39.0
+openai>=1.50.0
+python-dotenv>=1.0.0
+pandas>=2.1.0
+numpy>=1.26.0
+requests>=2.31.0
+
+# Reporting
+jinja2>=3.1.0
